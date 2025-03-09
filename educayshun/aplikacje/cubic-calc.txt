@@ -1,0 +1,91 @@
+from kivy.app import App
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.label import Label
+from kivy.uix.textinput import TextInput
+from kivy.uix.button import Button
+from sympy import symbols, solve, Eq
+
+class CubicCalculator(BoxLayout):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.orientation = 'vertical'
+        self.spacing = 10
+        self.padding = 20
+        
+
+        self.add_widget(Label(text='Kalkulator równań sześciennych', 
+                            font_size=24, 
+                            bold=True))
+        
+
+        self.a_input = TextInput(hint_text='Współczynnik a', multiline=False)
+        self.add_widget(self.a_input)
+        
+        self.b_input = TextInput(hint_text='Współczynnik b', multiline=False)
+        self.add_widget(self.b_input)
+        
+        self.c_input = TextInput(hint_text='Współczynnik c', multiline=False)
+        self.add_widget(self.c_input)
+        
+        self.d_input = TextInput(hint_text='Współczynnik d', multiline=False)
+        self.add_widget(self.d_input)
+        
+
+        self.calculate_btn = Button(text='Oblicz pierwiastki', 
+                                  size_hint=(0.7, 0.3), 
+                                  pos_hint={'center_x': 0.5})
+        self.calculate_btn.bind(on_press=self.calculate_roots)
+        self.add_widget(self.calculate_btn)
+        
+
+        self.result_label = Label(text='Wynik: ', 
+                                font_size=18, 
+                                halign='center',
+                                valign='top',
+                                size_hint_y=None,
+                                height=200)
+        self.add_widget(self.result_label)
+
+    def calculate_roots(self, instance):
+        try:
+            a = float(self.a_input.text)
+            b = float(self.b_input.text)
+            c = float(self.c_input.text)
+            d = float(self.d_input.text)
+            
+            if a == 0:
+                self.result_label.text = "Błąd: To nie jest równanie sześcienne (a ≠ 0)!"
+                self.result_label.color = (1, 0, 0, 1)
+                return
+                
+            
+            
+            
+            
+            x = symbols('x')
+            equation = Eq(a*x**3 + b*x**2 + c*x + d, 0)
+            solutions = solve(equation, x)
+            
+            # Formatowanie wyników
+            result = "Pierwiastki równania:\n"
+            for i, sol in enumerate(solutions, 1):
+                # Konwersja do postaci numerycznej
+                num_sol = sol.evalf()
+                result += f"x{i} = {num_sol:.4f}\n"
+            
+            self.result_label.text = result
+            self.result_label.color = (0, 1, 0, 1)
+            
+        except ValueError:
+            self.result_label.text = "Błąd: Nieprawidłowe dane wejściowe!\nWprowadź liczby rzeczywiste."
+            self.result_label.color = (1, 0, 0, 1)
+        except Exception as e:
+            self.result_label.text = f"Błąd obliczeń: {str(e)}"
+            self.result_label.color = (1, 0, 0, 1)
+
+class CubicApp(App):
+    def build(self):
+        return CubicCalculator()
+
+if __name__ == '__main__':
+    CubicApp().run()

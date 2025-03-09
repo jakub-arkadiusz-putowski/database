@@ -1,0 +1,184 @@
+from kivy.app import App
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.button import Button
+from kivy.uix.label import Label
+from kivy.uix.textinput import TextInput
+from kivy.graphics import Canvas, Color, Line, Rectangle, Ellipse
+from kivy.graphics import InstructionGroup
+from kivy.uix.widget import Widget
+from kivy.core.window import Window
+import math
+import os
+
+class TriangleWidget(Widget):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.scale = 25
+        self.offset = 400
+        self.triangle_data = {}
+
+    def draw_triangle(self, points):
+        self.canvas.clear()
+        with self.canvas:
+            Color(0, 0, 0)
+            Line(points=points, width=2)
+            
+
+            self.draw_labels(points)
+            
+
+            self.draw_side_labels(points)
+            self.draw_angle_labels(points)
+
+    def draw_labels(self, points):
+        xA, yA, xB, yB, xC, yC = points
+        # Etykiety wierzchołków
+        self.draw_text(f"A ({self.triangle_data['xA']:.1f}, {self.triangle_data['yA']:.1f})", xA, yA - 30)
+        self.draw_text(f"B ({self.triangle_data['xB']:.1f}, {self.triangle_data['yB']:.1f})", xB, yB - 30)
+        self.draw_text(f"C ({self.triangle_data['xC']:.1f}, {self.triangle_data['yC']:.1f})", xC, yC - 30)
+
+    def draw_side_labels(self, points):
+        xA, yA, xB, yB, xC, yC = points
+        # Etykiety boków
+        self.draw_text(f"c = {self.triangle_data['c']:.2f}", (xA + xB)/2, (yA + yB)/2)
+        self.draw_text(f"a = {self.triangle_data['a']:.2f}", (xB + xC)/2, (yB + yC)/2)
+        self.draw_text(f"b = {self.triangle_data['b']:.2f}", (xC + xA)/2, (yC + yA)/2)
+
+    def draw_angle_labels(self, points):
+        xA, yA, xB, yB, xC, yC = points
+        # Etykiety kątów
+        self.draw_text(f"α = {self.triangle_data['alpha']:.1f}°", xA + 30, yA + 10)
+        self.draw_text(f"β = {self.triangle_data['beta']:.1f}°", xB + 30, yB + 10)
+        self.draw_text(f"γ = {self.triangle_data['gamma']:.1f}°", xC + 30, yC + 10)
+
+    def draw_text(self, text, x, y):
+        with self.canvas:
+            Color(0, 0, 0)
+            Rectangle(pos=(x, y), size=(150, 20), texture=Label(text=text).texture)
+
+class TriangleApp(App):
+    def build(self):
+        self.title = "Generator Trójkąta"
+        main_layout = BoxLayout(orientation='horizontal', spacing=20, padding=20)
+
+
+        form_panel = BoxLayout(orientation='vertical', spacing=10, size_hint=(0.4, 1))
+        
+
+        inputs = [
+            ('Wierzchołek A(x, y):', 'xA', 'yA'),
+            ('Wierzchołek B(x, y):', 'xB', 'yB'),
+            ('Wierzchołek C(x, y):', 'xC', 'yC')
+        ]
+        
+        for label, x_id, y_id in inputs:
+            form_panel.add_widget(Label(text=label, size_hint_y=None, height=30))
+            row = BoxLayout(spacing=10, size_hint_y=None, height=40)
+            row.add_widget(TextInput(id=x_id, multiline=False))
+            row.add_widget(TextInput(id=y_id, multiline=False))
+            form_panel.add_widget(row)
+
+
+        btn_row = BoxLayout(spacing=10, size_hint_y=None, height=40)
+        btn_row.add_widget(Button(text='Generuj Trójkąt', on_press=self.generate_triangle))
+        btn_row.add_widget(Button(text='Eksportuj do SVG', on_press=self.export_svg))
+        form_panel.add_widget(btn_row)
+
+
+        self.info_panel = BoxLayout(orientation='vertical', spacing=10)
+        form_panel.add_widget(self.info_panel)
+
+
+        self.canvas_widget = TriangleWidget()
+        main_layout.add_widget(self.canvas_widget)
+
+        Window.size = (1200, 800)
+        return main_layout
+
+    def get_input_value(self, id):
+        try:
+            return float(self.root.ids[id].text)
+        except:
+            return 0.0
+
+    def generate_triangle(self, instance):
+        try:
+            xA = self.get_input_value('xA')
+            yA = self.get_input_value('yA')
+            xB = self.get_input_value('xB')
+            yB = self.get_input_value('yB')
+            xC = self.get_input_value('xC')
+            yC = self.get_input_value('yC')
+
+            # Obliczenia geometryczne
+            a = math.sqrt((xC - xB)**2 + (yC - yB)**2)
+            b = math.sqrt((xC - xA)**2 + (yC - yA)**2)
+            c = math.sqrt((xB - xA)**2 + (yB - yA)**2)
+
+            alpha = math.degrees(math.acos((b**2 + c**2 - a**2) / (2 * b * c)))
+            beta = math.degrees(math.acos((a**2 + c**2 - b**2) / (2 * a * c)))
+            gamma = 180 - alpha - beta
+
+
+            points = [
+                xA * self.canvas_widget.scale + self.canvas_widget.offset,
+                -yA * self.canvas_widget.scale + self.canvas_widget.offset,
+                xB * self.canvas_widget.scale + self.canvas_widget.offset,
+                -yB * self.canvas_widget.scale + self.canvas_widget.offset,
+                xC * self.canvas_widget.scale + self.canvas_widget.offset,
+                -yC * self.canvas_widget.scale + self.canvas_widget.offset
+            ]
+
+            self.canvas_widget.triangle_data = {
+                'xA': xA, 'yA': yA,
+                'xB': xB, 'yB': yB,
+                'xC': xC, 'yC': yC,
+                'a': a, 'b': b, 'c': c,
+                'alpha': alpha, 'beta': beta, 'gamma': gamma
+            }
+
+            self.canvas_widget.draw_triangle(points)
+            self.update_info_panel()
+
+        except Exception as e:
+            print(f"Błąd: {str(e)}")
+
+    def update_info_panel(self):
+        self.info_panel.clear_widgets()
+        data = self.canvas_widget.triangle_data
+        
+        info = [
+            ('Długość boku a (naprzeciw A):', data['a']),
+            ('Długość boku b (naprzeciw B):', data['b']),
+            ('Długość boku c (naprzeciw C):', data['c']),
+            ('Kąt α (przy A):', data['alpha']),
+            ('Kąt β (przy B):', data['beta']),
+            ('Kąt γ (przy C):', data['gamma'])
+        ]
+        
+        for label, value in info:
+            row = BoxLayout(spacing=10, size_hint_y=None, height=40)
+            row.add_widget(Label(text=f"{label} {value:.2f}"))
+            row.add_widget(Button(text='Pokaż szczegóły', size_hint_x=None, width=120))
+            self.info_panel.add_widget(row)
+
+    def export_svg(self, instance):
+        data = self.canvas_widget.triangle_data
+        if not data:
+            return
+
+        svg_content = f"""<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="800">
+    <polygon points="{data['xA']*25+400},{data['yA']*25+400} {data['xB']*25+400},{data['yB']*25+400} {data['xC']*25+400},{data['yC']*25+400}" 
+              fill="none" stroke="black"/>
+    <text x="{data['xA']*25+400}" y="{data['yA']*25+400-15}" font-size="16" text-anchor="middle">
+        A ({data['xA']:.1f}, {data['yA']:.1f})
+    </text>
+</svg>"""
+
+        with open("triangle.svg", "w") as f:
+            f.write(svg_content)
+        os.startfile("triangle.svg")
+
+if __name__ == '__main__':
+    TriangleApp().run()
