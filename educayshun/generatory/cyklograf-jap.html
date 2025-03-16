@@ -1,0 +1,812 @@
+:: podstawy-robotyki-i-mechanizacji ::
+
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>generator-cyklografu-jap</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/canvg/3.0.9/canvg.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 20px;
+        }
+        .circle-container {
+            position: relative;
+            width: 600px; /* Zwiększona szerokość */
+            height: 600px; /* Zwiększona wysokość */
+            margin-top: 20px;
+        }
+        .circle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            border: 2px solid #000;
+            position: absolute;
+            transform: translate(-50%, -50%);
+            z-index: 2; /* Kółka na wierzchu strzałek */
+        }
+        input[type="text"] {
+            padding: 10px;
+            font-size: 16px;
+            width: 300px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        .error {
+            color: red;
+            margin-top: 10px;
+        }
+        .arrow {
+            stroke: #000;
+            stroke-width: 2;
+            marker-end: url(#arrowhead); /* Dodaj grot na końcu strzałki */
+        }
+        .arrow-label {
+            font-size: 14px;
+            fill: #000;
+            user-select: none;
+        }
+        .group-line {
+            stroke: #000;
+            stroke-width: 2;
+            stroke-dasharray: 5, 5; /* Linia przerywana */
+        }
+        .group-label {
+            font-size: 14px;
+            fill: #000;
+            user-select: none;
+        }
+        .download-section {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>generator-cyklografu-jap-v.284</h1>
+    <input type="text" id="stateInput" placeholder="Wprowadź nazwę stanu">
+    <button onclick="addState()">Dodaj stan</button>
+    <button onclick="checkPairs()">Sprawdź pary</button>
+
+    <div class="download-section">
+        <button onclick="downloadGraph()">Pobierz graf</button>
+        <select id="formatSelect">
+            <option value="png">PNG</option>
+            <option value="jpg">JPG</option>
+            <option value="svg">SVG</option>
+        </select>
+    </div>
+
+    <div class="circle-container" id="circleContainer">
+        <!-- SVG dla strzałek i kresek grup -->
+        <svg width="600" height="600" style="position: absolute; top: 0; left: 0; z-index: 1;">
+            <defs>
+                <!-- Definicja grotu strzałki -->
+                <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                    <polygon points="0 0, 10 3.5, 0 7" fill="#000" />
+                </marker>
+            </defs>
+            <!-- Tutaj będą dodawane strzałki, etykiety i kreski grup -->
+        </svg>
+    </div>
+    <div class="error" id="errorMessage"></div>
+
+    <script>
+        let isFirstState = true;
+        const states = []; // Przechowuje wszystkie dodane stany w kolejności dodania
+        const circles = []; // Przechowuje pozycje kółek
+        const groups = []; // Przechowuje informacje o grupach
+
+        // Nasłuchiwanie zdarzenia keydown na polu tekstowym
+        document.getElementById('stateInput').addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') { // Jeśli naciśnięto Enter
+                addState(); // Dodaj stan
+            }
+        });
+
+        
+
+
+
+//------------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+function addState() {
+            const input = document.getElementById('stateInput').value.trim();
+            const container = document.getElementById('circleContainer');
+            const errorMessage = document.getElementById('errorMessage');
+            errorMessage.textContent = '';
+
+            if (isFirstState) {
+                if (input !== 's+-') {
+                    alert('Pierwszy stan musi być "s+-"');
+                    return;
+                }
+                isFirstState = false;
+            } else {
+                // Zmienione wyrażenie regularne, aby pozwolić na wiele liter i znaków
+                if (!/^([a-zA-Z][+-],)*[a-zA-Z][+-]$/.test(input)) {
+                    alert('Nazwa stanu musi składać się z jednej lub więcej liter i znaków "+" lub "-", oddzielonych przecinkami (np. "c+,d+")');
+                    return;
+                }
+            }
+
+            // Rozdziel stany na podstawie przecinków
+            const stateParts = input.split(',');
+
+            // Sprawdź, czy istnieją już pary przeciwnych stanów
+            for (const part of stateParts) {
+                const oppositeState = part[0] + (part[1] === '+' ? '-' : '+');
+                const hasPair = states.some(state => state.includes(oppositeState));
+
+                // Zlicz liczbę wystąpień danego stanu i jego przeciwności
+                const countCurrentState = states.filter(state => state.includes(part)).length;
+                const countOppositeState = states.filter(state => state.includes(oppositeState)).length;
+
+                // Jeśli próbujemy dodać duplikat, upewnij się, że liczba "+" i "-" jest zrównoważona
+                if (countCurrentState >= countOppositeState + 1) {
+                    alert(`Nie można dodać kolejnego "${part}", ponieważ brakuje pary "${oppositeState}".`);
+                    return;
+                }
+            }
+
+            states.push(input); // Dodaj stan do listy
+
+            // Wyczyść kontener i przelicz pozycje wszystkich kółek
+            container.querySelector('svg').innerHTML = ''; // Usuń istniejące strzałki
+            container.querySelector('svg').innerHTML = '<defs><marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#000" /></marker></defs>'; // Przywróć grot
+            updateCirclePositions(); // Przelicz pozycje i dodaj kółka na nowo
+            document.getElementById('stateInput').value = ''; // Wyczyść pole tekstowe
+        }
+
+
+
+//------------------------------------------------------------------------------------------------------------------------------
+
+        function updateCirclePositions() {
+            const container = document.getElementById('circleContainer');
+            const svg = container.querySelector('svg');
+            const totalStates = states.length;
+            const angleStep = (2 * Math.PI) / totalStates; // Krok kąta w radianach
+            const radius = 250; // Zwiększony promień okręgu
+            const centerX = 300; // Środek kontenera (połowa szerokości)
+            const centerY = 300; // Środek kontenera (połowa wysokości)
+
+            // Usuń wszystkie istniejące kółka
+            container.querySelectorAll('.circle').forEach(circle => circle.remove());
+
+            // Dodaj kółka na nowo z równomiernym rozłożeniem
+            states.forEach((state, index) => {
+                const circle = document.createElement('div');
+                circle.className = 'circle';
+                circle.textContent = state;
+
+                // Oblicz kąt dla danego stanu
+                const startAngle = Math.PI; // Kąt początkowy: -180 stopni (Math.PI w radianach)
+                const angle = startAngle + angleStep * index; // Kąt w radianach
+
+                const x = centerX + radius * Math.cos(angle);
+                const y = centerY + radius * Math.sin(angle);
+
+                circle.style.left = `${x}px`;
+                circle.style.top = `${y}px`;
+
+                container.appendChild(circle);
+                circles[index] = { x, y, angle }; // Zapisz pozycję i kąt kółka
+            });
+
+            // Dodaj strzałki między stanami
+            for (let i = 0; i < states.length; i++) {
+                const startState = circles[i];
+                const endState = circles[(i + 1) % states.length]; // Następny stan (zapętlenie do początku)
+
+                // Oblicz wektor kierunku strzałki
+                const dx = endState.x - startState.x;
+                const dy = endState.y - startState.y;
+                const length = Math.sqrt(dx * dx + dy * dy); // Długość wektora
+
+                // Normalizuj wektor kierunku
+                const nx = dx / length;
+                const ny = dy / length;
+
+                // Przesuń koniec strzałki o 30 jednostek do tyłu
+                const offset = 30; // Odległość przesunięcia grotu
+                const x2 = endState.x - nx * offset;
+                const y2 = endState.y - ny * offset;
+
+                // Rysuj strzałkę
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', startState.x);
+                line.setAttribute('y1', startState.y);
+                line.setAttribute('x2', x2);
+                line.setAttribute('y2', y2);
+                line.setAttribute('class', 'arrow');
+                svg.appendChild(line);
+
+                // Oblicz środek strzałki
+                const midX = (startState.x + endState.x) / 2;
+                const midY = (startState.y + endState.y) / 2;
+
+                // Oblicz wektor od środka okręgu do środka strzałki
+                const centerToMidX = midX - centerX;
+                const centerToMidY = midY - centerY;
+                const centerToMidLength = Math.sqrt(centerToMidX * centerToMidX + centerToMidY * centerToMidY);
+
+                // Normalizuj wektor
+                const normX = centerToMidX / centerToMidLength;
+                const normY = centerToMidY / centerToMidLength;
+
+                // Przesuń etykietę o 10 pikseli na zewnątrz
+                const labelOffset = -15; // Odległość przesunięcia etykiety
+                const labelX = midX + normX * labelOffset;
+                const labelY = midY + normY * labelOffset;
+
+                // Dodaj etykietę strzałki
+                const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                //const labelText = getArrowLabel(states[i]); // Pobierz etykietę dla strzałki
+
+                label.setAttribute('x', labelX);
+                label.setAttribute('y', labelY);
+                label.setAttribute('text-anchor', 'middle');
+                label.setAttribute('class', 'arrow-label');
+                label.textContent = getArrowLabel(states[i]);
+                //label.textContent = labelText;
+                svg.appendChild(label);
+            }
+
+            // Dodaj kreski grup
+            drawGroupLines();
+
+            checkIntersectionAndAddLabels();
+        }
+
+
+//-----------------------------------------------------------------
+
+
+
+function drawGroupLines() {
+    const svg = document.querySelector('svg');
+    const centerX = 300;
+    const centerY = 300;
+    const radius = 250;
+    const smallRadius = 120;
+
+    groups.length = 0;
+
+    const usedLetters = new Set();
+    let groupStart = 0;
+
+    for (let i = 0; i < states.length; i++) {
+        const stateParts = states[i].split(','); // Rozdziel stany na części
+        let hasDuplicate = false;
+
+        // Sprawdź, czy którykolwiek z liter w stanie już istnieje w grupie
+        for (const part of stateParts) {
+            const currentLetter = part[0]; // Pierwszy znak (litera)
+            if (usedLetters.has(currentLetter)) {
+                hasDuplicate = true;
+                break;
+            }
+        }
+
+        // Jeśli znaleziono duplikat, zakończ bieżącą grupę i rozpocznij nową
+        if (hasDuplicate) {
+            groups.push({ start: groupStart, end: i });
+            groupStart = i;
+            usedLetters.clear();
+        }
+
+        // Dodaj litery z bieżącego stanu do zbioru użytych liter
+        for (const part of stateParts) {
+            const currentLetter = part[0];
+            usedLetters.add(currentLetter);
+        }
+    }
+
+    // Dodaj ostatnią grupę
+    if (groupStart < states.length) {
+        groups.push({ start: groupStart, end: states.length });
+    }
+
+    let sPlusMinusGroupIndex = -1;
+    for (let i = 0; i < groups.length; i++) {
+        const group = groups[i];
+        if (states.slice(group.start, group.end).includes('s+-')) {
+            sPlusMinusGroupIndex = i;
+            break;
+        }
+    }
+
+    if (sPlusMinusGroupIndex !== -1) {
+        const sPlusMinusGroup = groups.splice(sPlusMinusGroupIndex, 1)[0];
+        groups.unshift(sPlusMinusGroup);
+    }
+
+    const intersectionPoints = [];
+
+    groups.forEach((group, index) => {
+        const startState = circles[group.end - 1];
+        const endState = circles[group.end % states.length];
+        const midX = (startState.x + endState.x) / 2;
+        const midY = (startState.y + endState.y) / 2;
+        const dx = midX - centerX;
+        const dy = midY - centerY;
+        const length = Math.sqrt(dx * dx + dy * dy);
+        const nx = dx / length;
+        const ny = dy / length;
+        const extendedX = midX + nx * 35;
+        const extendedY = midY + ny * 35;
+
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', centerX);
+        line.setAttribute('y1', centerY);
+        line.setAttribute('x2', extendedX);
+        line.setAttribute('y2', extendedY);
+        line.setAttribute('class', 'group-line');
+        svg.appendChild(line);
+
+        const groupLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        const labelOffsetX = extendedX + 10 * nx;
+        const labelOffsetY = extendedY + 10 * ny;
+        groupLabel.setAttribute('x', labelOffsetX);
+        groupLabel.setAttribute('y', labelOffsetY);
+        groupLabel.setAttribute('text-anchor', 'middle');
+        groupLabel.setAttribute('class', 'group-label');
+        groupLabel.textContent = `x${index + 1}`;
+        svg.appendChild(groupLabel);
+
+        const intersectionX = centerX + smallRadius * nx;
+        const intersectionY = centerY + smallRadius * ny;
+        intersectionPoints.push({ x: intersectionX, y: intersectionY });
+
+        const intersectionCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        intersectionCircle.setAttribute('cx', intersectionX);
+        intersectionCircle.setAttribute('cy', intersectionY);
+        intersectionCircle.setAttribute('r', 5);
+        intersectionCircle.setAttribute('fill', 'white');
+        intersectionCircle.setAttribute('stroke', '#000');
+        intersectionCircle.setAttribute('stroke-width', 1);
+        svg.appendChild(intersectionCircle);
+    });
+
+    if (intersectionPoints.length > 0) {
+        const reversedIntersectionPoints = [...intersectionPoints].reverse();
+
+        for (let i = 0; i < reversedIntersectionPoints.length; i++) {
+            const startPoint = reversedIntersectionPoints[i];
+            const endPoint = reversedIntersectionPoints[(i + 1) % reversedIntersectionPoints.length];
+
+            if (reversedIntersectionPoints.length === 2) {
+                // Specjalna obsługa przypadku z dwoma grupami
+                if (i === 0) {
+                    // Oblicz długość strzałki łączącej stany
+                    const arrowLength = Math.sqrt(
+                        Math.pow(endPoint.x - startPoint.x, 2) + Math.pow(endPoint.y - startPoint.y, 2)
+                    );
+
+                    // Ustaw promień łuku na 20% długości strzałki
+                    const arcRadius = arrowLength * 0.2;
+
+                    // Rysuj pierwszy wektor jako łuk na czerwono
+                    const startAngle = Math.atan2(startPoint.y - centerY, startPoint.x - centerX);
+                    const endAngle = Math.atan2(endPoint.y - centerY, endPoint.x - centerX);
+                    const arcPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    arcPath.setAttribute(
+                        'd',
+                        `M ${startPoint.x} ${startPoint.y} 
+                         A ${arcRadius} ${arcRadius} 0 1 1 ${endPoint.x} ${endPoint.y}`
+                    );
+                    arcPath.setAttribute('stroke', 'black'); // czarna łuk
+                    arcPath.setAttribute('stroke-width', 2);
+                    arcPath.setAttribute('fill', 'none');
+                    arcPath.setAttribute('marker-end', 'url(#arrowhead)');
+                    svg.appendChild(arcPath);
+
+                    const midAngle = (startAngle + endAngle) / 2;
+                    const labelRadius = arcRadius - 110; // Twoja edycja: odległość etykiety od łuku
+                    const labelX = centerX + labelRadius * Math.cos(midAngle);
+                    const labelY = centerY + labelRadius * Math.sin(midAngle);
+
+                    const vectorLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    vectorLabel.setAttribute('x', labelX);
+                    vectorLabel.setAttribute('y', labelY);
+                    vectorLabel.setAttribute('text-anchor', 'middle');
+                    vectorLabel.setAttribute('class', 'vector-label');
+                    vectorLabel.setAttribute('fill', 'black'); // czarna etykieta
+                    vectorLabel.textContent = `k${i + 1}`;
+                    svg.appendChild(vectorLabel);
+                } else {
+                    // Rysuj drugi wektor jako linię prostą
+                    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    line.setAttribute('x1', startPoint.x); // Punkt początkowy
+                    line.setAttribute('y1', startPoint.y); // Punkt początkowy
+                    line.setAttribute('x2', endPoint.x);   // Punkt końcowy
+                    line.setAttribute('y2', endPoint.y);   // Punkt końcowy
+                    line.setAttribute('stroke', '#000');
+                    line.setAttribute('stroke-width', 2);
+                    line.setAttribute('marker-end', 'url(#arrowhead)'); // Grot na końcu linii
+                    svg.appendChild(line);
+
+                    const midX = (startPoint.x + endPoint.x) / 2;
+                    const midY = (startPoint.y + endPoint.y) / 2;
+                    const dx = endPoint.x - startPoint.x;
+                    const dy = endPoint.y - startPoint.y;
+                    const length = Math.sqrt(dx * dx + dy * dy);
+                    const nx = dx / length;
+                    const ny = dy / length;
+                    const labelX = midX + 10 * nx;
+                    const labelY = midY + 10 * ny;
+
+                    const vectorLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    vectorLabel.setAttribute('x', labelX);
+                    vectorLabel.setAttribute('y', labelY);
+                    vectorLabel.setAttribute('text-anchor', 'middle');
+                    vectorLabel.setAttribute('class', 'vector-label');
+                    vectorLabel.textContent = `k${i + 1}`;
+                    svg.appendChild(vectorLabel);
+                }
+            } else {
+                // Dla większej liczby grup rysuj linie proste
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', endPoint.x);
+                line.setAttribute('y1', endPoint.y);
+                line.setAttribute('x2', startPoint.x);
+                line.setAttribute('y2', startPoint.y);
+                line.setAttribute('stroke', '#000');
+                line.setAttribute('stroke-width', 2);
+                line.setAttribute('marker-end', 'url(#arrowhead)');
+                svg.appendChild(line);
+
+                const midX = (startPoint.x + endPoint.x) / 2;
+                const midY = (startPoint.y + endPoint.y) / 2;
+                const dx = endPoint.x - startPoint.x;
+                const dy = endPoint.y - startPoint.y;
+                const length = Math.sqrt(dx * dx + dy * dy);
+                const nx = dx / length;
+                const ny = dy / length;
+                const labelX = midX + 10 * nx;
+                const labelY = midY + 10 * ny;
+
+                const vectorLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                vectorLabel.setAttribute('x', labelX);
+                vectorLabel.setAttribute('y', labelY);
+                vectorLabel.setAttribute('text-anchor', 'middle');
+                vectorLabel.setAttribute('class', 'vector-label');
+                vectorLabel.textContent = `k${reversedIntersectionPoints.length - i}`;
+                svg.appendChild(vectorLabel);
+            }
+        }
+    }
+
+    // Dodaj groty w miejscach przecięcia strzałek z kreskami grup
+    const arrows = svg.querySelectorAll('.arrow');
+    const groupLines = svg.querySelectorAll('.group-line');
+
+    arrows.forEach(arrow => {
+        const x1 = parseFloat(arrow.getAttribute('x1'));
+        const y1 = parseFloat(arrow.getAttribute('y1'));
+        const x2 = parseFloat(arrow.getAttribute('x2'));
+        const y2 = parseFloat(arrow.getAttribute('y2'));
+
+        groupLines.forEach(groupLine => {
+            const gx1 = parseFloat(groupLine.getAttribute('x1'));
+            const gy1 = parseFloat(groupLine.getAttribute('y1'));
+            const gx2 = parseFloat(groupLine.getAttribute('x2'));
+            const gy2 = parseFloat(groupLine.getAttribute('y2'));
+
+            // Znajdź punkt przecięcia
+            const intersection = findIntersection(x1, y1, x2, y2, gx1, gy1, gx2, gy2);
+            if (intersection) {
+                // Oblicz kierunek kreski grupy
+                const dx = gx2 - gx1;
+                const dy = gy2 - gy1;
+                const length = Math.sqrt(dx * dx + dy * dy);
+                const nx = dx / length; // Normalizowany wektor kierunku
+                const ny = dy / length;
+
+                // Oblicz kąt prostopadły do kreski grupy
+                const angle = Math.atan2(dy, dx) + Math.PI / 2; // Kąt prostopadły
+
+                // Offset dla grota (np. 10 pikseli)
+                const offset = -2;
+
+                // Przesuń punkt końcowy linii (grotu) do tyłu
+                const endX = intersection.x + offset * Math.cos(angle); // Użyj kąta prostopadłego
+                const endY = intersection.y + offset * Math.sin(angle); // Użyj kąta prostopadłego
+
+                // Dodaj grot strzałki
+                const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+                marker.setAttribute('id', `arrowhead-${intersection.x}-${intersection.y}`);
+                marker.setAttribute('markerWidth', '10');
+                marker.setAttribute('markerHeight', '7');
+                marker.setAttribute('refX', '9');
+                marker.setAttribute('refY', '3.5');
+                marker.setAttribute('orient', angle * (180 / Math.PI)); // Ustaw kąt grota
+                const arrowPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                arrowPath.setAttribute('d', 'M0,0 L10,3.5 L0,7 Z');
+                arrowPath.setAttribute('fill', '#000');
+                marker.appendChild(arrowPath);
+                svg.appendChild(marker);
+
+                // Dodaj linię prostopadłą z grotem
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', intersection.x);
+                line.setAttribute('y1', intersection.y);
+                line.setAttribute('x2', endX); // Uwzględnij offset
+                line.setAttribute('y2', endY); // Uwzględnij offset
+                line.setAttribute('stroke', '#000');
+                line.setAttribute('stroke-width', 2);
+                line.setAttribute('marker-end', `url(#arrowhead-${intersection.x}-${intersection.y})`);
+                svg.appendChild(line);
+            }
+        });
+    });
+
+    // Przesuń etykiety strzałek w miejscach przecięcia z kreskami grup
+    arrows.forEach(arrow => {
+        const x1 = parseFloat(arrow.getAttribute('x1'));
+        const y1 = parseFloat(arrow.getAttribute('y1'));
+        const x2 = parseFloat(arrow.getAttribute('x2'));
+        const y2 = parseFloat(arrow.getAttribute('y2'));
+
+        groupLines.forEach(groupLine => {
+            const gx1 = parseFloat(groupLine.getAttribute('x1'));
+            const gy1 = parseFloat(groupLine.getAttribute('y1'));
+            const gx2 = parseFloat(groupLine.getAttribute('x2'));
+            const gy2 = parseFloat(groupLine.getAttribute('y2'));
+
+            // Znajdź punkt przecięcia
+            const intersection = findIntersection(x1, y1, x2, y2, gx1, gy1, gx2, gy2);
+            if (intersection) {
+                // Oblicz kierunek kreski grupy
+                const dx = gx2 - gx1;
+                const dy = gy2 - gy1;
+                const length = Math.sqrt(dx * dx + dy * dy);
+                const nx = dx / length; // Normalizowany wektor kierunku kreski grupy
+                const ny = dy / length;
+
+                // Oblicz wektor prostopadły do kreski grupy (w lewo)
+                const perpendicularX = -ny; // Wektor prostopadły (w lewo)
+                const perpendicularY = nx;
+
+                // Offset do tyłu i w lewo (np. 10 pikseli do tyłu, 5 pikseli w lewo)
+                const offsetBack = -20; // Do tyłu (ujemny, bo przeciwnie do kierunku kreski)
+                const offsetLeft = -35;  // W lewo (ujemny, bo w lewo względem kierunku kreski)
+
+                // Oblicz nową pozycję etykiety
+                const labelX = intersection.x + offsetBack * nx + offsetLeft * perpendicularX;
+                const labelY = intersection.y + offsetBack * ny + offsetLeft * perpendicularY;
+
+                // Znajdź etykietę strzałki
+                const arrowLabel = arrow.nextElementSibling;
+                if (arrowLabel && arrowLabel.classList.contains('arrow-label')) {
+                    // Przesuń etykietę
+                    arrowLabel.setAttribute('x', labelX);
+                    arrowLabel.setAttribute('y', labelY);
+                }
+            }
+        });
+    });
+
+    const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+    marker.setAttribute('id', 'arrowhead');
+    marker.setAttribute('markerWidth', '10');
+    marker.setAttribute('markerHeight', '7');
+    marker.setAttribute('refX', '9');
+    marker.setAttribute('refY', '3.5');
+    marker.setAttribute('orient', 'auto');
+    const arrow = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    arrow.setAttribute('d', 'M0,0 L10,3.5 L0,7 Z');
+    arrow.setAttribute('fill', '#000');
+    marker.appendChild(arrow);
+    svg.appendChild(marker);
+}
+
+
+
+
+
+
+//-----------------------------------------------------------------
+
+
+
+
+
+function checkIntersectionAndAddLabels() {
+    const svg = document.querySelector('svg');
+    const arrows = svg.querySelectorAll('.arrow');
+    const groupLines = svg.querySelectorAll('.group-line');
+    const totalGroups = groupLines.length; // Liczba rzeczywistych grup
+
+    arrows.forEach(arrow => {
+        const x1 = parseFloat(arrow.getAttribute('x1'));
+        const y1 = parseFloat(arrow.getAttribute('y1'));
+        const x2 = parseFloat(arrow.getAttribute('x2'));
+        const y2 = parseFloat(arrow.getAttribute('y2'));
+
+        groupLines.forEach(groupLine => {
+            const gx1 = parseFloat(groupLine.getAttribute('x1'));
+            const gy1 = parseFloat(groupLine.getAttribute('y1'));
+            const gx2 = parseFloat(groupLine.getAttribute('x2'));
+            const gy2 = parseFloat(groupLine.getAttribute('y2'));
+
+            // Sprawdź przecięcie
+            const intersection = findIntersection(x1, y1, x2, y2, gx1, gy1, gx2, gy2);
+            if (intersection) {
+                const label = groupLine.nextElementSibling; // Etykieta kreski grupowej
+                const groupLabelText = label.textContent; // np. "x1", "x2", itd.
+
+                // Wyciągnij numer z etykiety kreski grupowej (np. "x1" -> 1)
+                const groupNumber = parseInt(groupLabelText.replace('x', ''), 10);
+
+                // Oblicz etykietę dla strzałki: k(numer + 1)
+                let arrowLabelText = `k${groupNumber + 1}`;
+
+                // Sprawdź, czy etykieta przekracza liczbę grup
+                if (groupNumber + 1 > totalGroups) {
+                    arrowLabelText = 'k1'; // Jeśli tak, ustaw na k1
+                }
+
+                // Oblicz wektor kierunkowy kreski grupy
+                const dx = gx2 - gx1;
+                const dy = gy2 - gy1;
+                const length = Math.sqrt(dx * dx + dy * dy);
+                const nx = -dy / length; // Wektor normalny (prostopadły do kreski)
+                const ny = dx / length;
+
+                // Przesunięcie etykiety w prawo i w górę względem kreski grupy
+                const offsetRight = 25; // Przesunięcie w prawo
+                const offsetUp = 15; // Przesunięcie w górę
+                const labelX = intersection.x + nx * offsetRight + (dx / length) * offsetUp;
+                const labelY = intersection.y + ny * offsetRight + (dy / length) * offsetUp;
+
+                // Dodaj etykietę do strzałki
+                const arrowLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                arrowLabel.setAttribute('x', labelX);
+                arrowLabel.setAttribute('y', labelY);
+                arrowLabel.setAttribute('text-anchor', 'middle');
+                arrowLabel.setAttribute('class', 'arrow-label');
+                arrowLabel.textContent = arrowLabelText;
+                svg.appendChild(arrowLabel);
+            }
+        });
+    });
+}
+
+function findIntersection(x1, y1, x2, y2, x3, y3, x4, y4) {
+    const denominator = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+    if (denominator === 0) return null; // Linie są równoległe
+
+    const t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / denominator;
+    const u = -((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / denominator;
+
+    if (t >= 0 && t <= 1 && u >= 0 && u <= 1) {
+        return {
+            x: x1 + t * (x2 - x1),
+            y: y1 + t * (y2 - y1)
+        };
+    }
+    return null; // Brak przecięcia w obrębie segmentów
+}
+
+
+//-----------------------------------------------------------------
+
+
+
+function getArrowLabel(state) {
+    if (state === 's+-') {
+        return 's'; // Dla stanu startowego etykieta to "s"
+    } else {
+        // Rozdziel stany na podstawie przecinków
+        const stateParts = state.split(',');
+        const labels = stateParts.map(part => {
+            const letter = part[0]; // Pierwszy znak (litera)
+            const sign = part[1]; // Drugi znak (+ lub -)
+            return sign === '+' ? `${letter}1` : `${letter}0`; // Etykieta to "a1" lub "a0"
+        });
+        return labels.join(','); // Połącz etykiety przecinkami
+    }
+}
+
+
+//-----------------------------------------------------------------
+
+        function checkPairs() {
+            const errorMessage = document.getElementById('errorMessage');
+            errorMessage.textContent = '';
+
+            let isValid = true;
+            const missingPairs = [];
+
+            // Sprawdź, czy każdy stan ma swoją parę
+            const uniqueStates = new Set(states);
+            for (const state of uniqueStates) {
+                if (state === 's+-') continue; // Pomijamy stan początkowy
+
+                const oppositeState = state[0] + (state[1] === '+' ? '-' : '+'); // Tworzymy przeciwny stan
+
+                const countCurrentState = states.filter(s => s === state).length;
+                const countOppositeState = states.filter(s => s === oppositeState).length;
+
+                if (countCurrentState !== countOppositeState) {
+                    isValid = false;
+                    missingPairs.push(`Niezrównoważone stany: ${state} (${countCurrentState}) vs ${oppositeState} (${countOppositeState})`);
+                }
+            }
+
+            if (!isValid) {
+                errorMessage.textContent = missingPairs.join('\n');
+            } else {
+                errorMessage.textContent = 'Wszystkie stany są zrównoważone!';
+                errorMessage.style.color = 'green';
+            }
+        }
+
+
+//-----------------------------------------------------------------
+
+function downloadGraph() {
+            const format = document.getElementById('formatSelect').value;
+            const svgElement = document.querySelector('svg').cloneNode(true);
+            
+            // Dodaj style bezpośrednio do SVG
+            const style = document.createElementNS('http://www.w3.org/2000/svg', 'style');
+            style.textContent = `
+                .state-circle { fill: #f0f0f0; stroke: #000; stroke-width: 2; }
+                .state-text { font-size: 16px; text-anchor: middle; dominant-baseline: central; }
+            `;
+            svgElement.insertBefore(style, svgElement.firstChild);
+
+            if(format === 'svg') {
+                const blob = new Blob([new XMLSerializer().serializeToString(svgElement)], {type: "image/svg+xml"});
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'graf.svg';
+                link.click();
+            } else {
+                const canvas = document.createElement('canvas');
+                canvas.width = 600;
+                canvas.height = 600;
+                canvg(canvas, new XMLSerializer().serializeToString(svgElement));
+                
+                setTimeout(() => {
+                    canvas.toBlob(blob => {
+                        const url = URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.download = `graf.${format}`;
+                        link.href = url;
+                        link.click();
+                    }, `image/${format}`, 1.0);
+                }, 500);
+            }
+        }
+
+
+
+//-----------------------------------------------------------------
+    </script>
+
+</body>
+</html>
