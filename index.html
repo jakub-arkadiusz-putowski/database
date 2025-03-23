@@ -6,11 +6,14 @@
     <title>database</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 10px;
-            background-color: #f4f4f4;
-            box-sizing: border-box;
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 10px;
+        background-color: #f4f4f4;
+        box-sizing: border-box;
+        display: flex;          /* Dodane */
+        flex-direction: column; /* Dodane */
+        min-height: 100vh;      /* Dodane */
         }
 
         h1 {
@@ -113,13 +116,14 @@
             color: #555;
         }
 
+
         footer {
-            text-align: center;
-            margin-top: 40px;
-            padding: 10px;
-            background-color: #333;
-            color: #fff;
-            font-size: 0.9em;
+        text-align: center;
+        margin-top: auto;       /* Zmienione z "40px" */
+        padding: 10px;
+        background-color: #333;
+        color: #fff;
+        font-size: 0.9em;
         }
 
         /* Responsywne style */
@@ -286,8 +290,8 @@
     </div>
 
     <footer>
-        <p>Jakub-Arkadiusz Putowski @ 2024-2025</p>
-        <p>Politechnika Świętokrzyska, Kielce</p>
+        <p>Jakub-Arkadiusz Putowski</p>
+        <p>personal-database @ 2024-2025</p>
     </footer>
 
 </body>
