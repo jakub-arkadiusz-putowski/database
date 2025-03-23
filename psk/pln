@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Plan Zajęć</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 20px;
+    background-color: #f4f4f4;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: white;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+
+  th, td {
+    padding: 12px 15px;
+    text-align: left;
+    font-size: 14px;
+    color: #333;
+  }
+
+  thead th {
+    background-color: #f0f0f0;
+    font-weight: 600;
+    border-bottom: 1px solid #ddd;
+    box-shadow: 0 2px 2px -2px rgba(0, 0, 0, 0.2);
+  }
+
+  tbody tr {
+    border-bottom: 1px solid #eee;
+  }
+
+  tbody tr:last-child {
+    border-bottom: none;
+  }
+
+  .time-cell {
+    width: 80px;
+    background-color: #f9f9f9;
+    color: #666;
+  }
+
+  .color-light-blue { background-color: #e0f2fe; }
+  .color-light-green { background-color: #e8f5e9; }
+  .color-light-yellow { background-color: #fff8e1; }
+
+  p {
+    margin: 5px 0;
+    line-height: 1.4;
+  }
+
+  @media (max-width: 600px) {
+    th, td {
+      font-size: 12px;
+      padding: 8px 10px;
+    }
+    .time-cell {
+      width: 60px;
+    }
+  }
+
+</style>
+</head>
+<body>
+
+<table>
+  <thead>
+    <tr>
+      <th></th>
+      <th>poniedziałek</th>
+      <th>wtorek</th>
+      <th>środa</th>
+      <th>czwartek</th>
+      <th>piątek</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="time-cell">8:00</td>
+      <td class="color-light-blue">
+        <p>WFiT asddddddddddddddddddddddddddddddddddddd</p>
+        <p>3.002</p>
+        <p>Sterowanie i diagnostyka</p>
+        <p>przetworników i napędów</p>
+        <p>mgr inż. Paweł Drozd</p>
+        <p>Elektronika i Telekomunikacja</p>
+      </td>
+      <td class="color-light-yellow">
+        <p>WFiT Wydział</p>
+        <p>Wytrzymałość i dynamika</p>
+        <p>konstrukcji 2</p>
+        <p>inż. Marek Kaleta</p>
+        <p>Budownictwo</p>
+      </td>
+      <td class="color-light-green">
+        <p>CW Fizyka</p>
+        <p>1.7.19</p>
+        <p>Język obcy specjalności</p>
+        <p>Budownictwo</p>
+      </td>
+      <td class="color-light-blue">
+        <p>WFiT Wydział</p>
+        <p>3.002</p>
+        <p>Programowanie procesów</p>
+        <p>współbieżnych</p>
+        <p>inż. Łukasz Szydłowski</p>
+        <p>Elektronika i Telekomunikacja</p>
+      </td>
+      <td></td>
+    </tr>
+    <tr>
+      <td class="time-cell">10:00</td>
+      <td class="color-light-blue">
+        <p>WYK, Tydzień</p>
+        <p>Sterowniki PLC</p>
+        <p>Sterowanie i diagnostyka</p>
+        <p>przetworników i napędów</p>
+        <p>mgr inż. Paweł Drozd</p>
+        <p>Elektronika i Telekomunikacja</p>
+      </td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td class="time-cell">12:00</td>
+      <td class="color-light-blue">
+        <p>WFiT Wydział</p>
+        <p>1.52</p>
+        <p>Układy cyfrowe i mikroprocesorowe</p>
+        <p>inż. Łukasz Szydłowski</p>
+        <p>Elektronika i Telekomunikacja</p>
+      </td>
+      <td class="color-light-yellow">
+        <p>FTC Budownictwo</p>
+        <p>1.04</p>
+        <p>Logistyka systemów produkcyjnych</p>
+        <p>inż. Michał Kucęba</p>
+        <p>Budownictwo</p>
+      </td>
+      <td class="color-light-green">
+        <p>CW Fizyka</p>
+        <p>1.7.19</p>
+        <p>Język obcy specjalności</p>
+        <p>Budownictwo</p>
+      </td>
+      <td class="color-light-blue">
+        <p>WFiT Wydział</p>
+        <p>1.52</p>
+        <p>Układy cyfrowe i mikroprocesorowe</p>
+        <p>inż. Łukasz Szydłowski</p>
+        <p>Elektronika i Telekomunikacja</p>
+      </td>
+      <td></td>
+    </tr>
+    <tr>
+      <td class="time-cell">14:00</td>
+      <td class="color-light-blue">
+        <p>WFiT Wydział</p>
+        <p>4.20</p>
+        <p>Podstawy i metody informatyki</p>
+        <p>mgr inż. Paweł Drozd</p>
+        <p>Elektronika i Telekomunikacja</p>
+      </td>
+      <td class="color-light-blue">
+        <p>WFiT Wydział</p>
+        <p>4.20</p>
+        <p>Podstawy i metody informatyki</p>
+        <p>mgr inż. Paweł Drozd</p>
+        <p>Elektronika i Telekomunikacja</p>
+      </td>
+      <td class="color-light-green">
+        <p>WFiT Wydział</p>
+        <p>1.00</p>
+        <p>Podstawy konstrukcji</p>
+        <p>maszyn 1</p>
+        <p>inż. Marcin Stępień</p>
+        <p>Budownictwo</p>
+      </td>
+      <td class="color-light-blue">
+        <p>WFiT Wydział</p>
+        <p>4.20</p>
+        <p>Podstawy i metody informatyki</p>
+        <p>inż. Michał Kucęba</p>
+        <p>Elektronika i Telekomunikacja</p>
+      </td>
+      <td class="color-light-green">
+        <p>AMW Wydział</p>
+        <p>1.00</p>
+        <p>Zastosowanie i programowanie</p>
+        <p>sterowników logicznych</p>
+        <p>inż. Łukasz Szydłowski</p>
+        <p>Elektronika i Telekomunikacja</p>
+      </td>
+    </tr>
+    <tr>
