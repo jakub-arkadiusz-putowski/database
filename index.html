@@ -1,16 +1,17 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Zabezpieczone Linki</title>
+    <title>Moje Zabezpieczone Linki</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <style>
-        body { font-family: Arial; max-width: 600px; margin: 20px auto; padding: 20px; }
-        #error { color: red; margin-top: 10px; }
+        body { font-family: Arial; max-width: 600px; margin: 0 auto; padding: 20px; }
+        #links { margin-top: 20px; }
+        #error { color: red; margin: 10px 0; }
     </style>
 </head>
 <body>
     <h1>Moje Linki</h1>
-    <input type="password" id="password" placeholder="Wprowadź hasło">
+    <input type="password" id="password" placeholder="Wpisz hasło">
     <button onclick="loadLinks()">Odblokuj</button>
     <div id="error"></div>
     <div id="links"></div>
@@ -22,17 +23,18 @@
             errorDiv.textContent = '';
             
             try {
-                // Pobierz plik (używając pełnego URL do raw.githubusercontent.com)
-                const response = await fetch('https://raw.githubusercontent.com/jakub-arkadiusz-putowski/database/main/links.json.enc?ver=' + Date.now());
+                // Pobierz zaszyfrowany plik (używając RAW URL z GitHub)
+                const repoUrl = 'https://raw.githubusercontent.com/jakub-arkadiusz-putowski/database/main/links.json.enc';
+                const response = await fetch(repoUrl + '?ver=' + Date.now());
                 if (!response.ok) throw new Error("Nie można znaleźć pliku!");
                 
                 const encryptedData = await response.text();
                 
-                // Odszyfruj (AES domyślne)
+                // Odszyfruj (AES)
                 const decrypted = CryptoJS.AES.decrypt(encryptedData, password);
                 const text = decrypted.toString(CryptoJS.enc.Utf8);
                 
-                if (!text) throw new Error("Błędne hasło lub uszkodzone dane!");
+                if (!text) throw new Error("Błędne hasło!");
                 
                 // Pokaż linki
                 const links = JSON.parse(text);
