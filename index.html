@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Zabezpieczone Linki</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <style>
+        body { font-family: Arial; max-width: 600px; margin: 20px auto; padding: 20px; }
+        #debug { color: rgb(240, 150, 30); margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>Moje Linki</h1>
+    <input type="password" id="password" placeholder="Wprowadź hasło">
+    <button onclick="loadLinks()">Odblokuj</button>
+    
+    <div id="links"></div>
+    <div id="debug"></div>
+
+    <script>
+        async function loadLinks() {
+            const password = document.getElementById('password').value;
+            const debugDiv = document.getElementById('debug');
+            
+            try {
+                debugDiv.innerHTML = "Ładowanie pliku...";
+                
+                // 1. Pobierz zaszyfrowany plik
+                const response = await fetch('links.json.enc');
+                if (!response.ok) throw new Error("Nie można znaleźć pliku!");
+                
+                const encrypted = await response.text();
+                debugDiv.innerHTML += "<br>Plik pobrany, rozmiar: " + encrypted.length + " znaków";
+                
+                // 2. Odszyfruj (ważne: użyj tego samego formatu co przy szyfrowaniu)
+                const decrypted = CryptoJS.AES.decrypt(encrypted, password);
+                const text = decrypted.toString(CryptoJS.enc.Utf8);
+                
+                if (!text) {
+                    debugDiv.innerHTML += "<br>Błędne hasło lub uszkodzone dane!";
+                    return;
+                }
+                
+                debugDiv.innerHTML += "<br>Odszyfrowano pomyślnie!";
+                
+                // 3. Pokaż linki
+                const links = JSON.parse(text);
+                let html = "<h2>Twoje linki:</h2><ul>";
+                for (const [name, url] of Object.entries(links)) {
+                    html += `<li><a href="${url}" target="_blank">${name}</a></li>`;
+                }
+                document.getElementById('links').innerHTML = html;
+                
+            } catch (e) {
+                debugDiv.innerHTML += "<br>BŁĄD: " + e.message;
+            }
+        }
+    </script>
+</body>
+</html>
