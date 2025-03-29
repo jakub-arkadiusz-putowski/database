@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>enter-password</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <style>
+        :root {
+            --primary: #3c3e41;
+            --primary-dark: #3c3e41;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray: #6c757d;
+            --border: #dee2e6;
+            --success: #28a745;
+            --error: #dc3545;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: var(--light);
+            color: var(--dark);
+            line-height: 1.6;
+            padding: 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        
+        header {
+            margin-bottom: 2.5rem;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+        
+        .subtitle {
+            color: var(--gray);
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .password-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 1rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        
+        .password-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(67, 97, 238, 0.2);
+        }
+        
+        .btn {
+            display: inline-block;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            width: 100%;
+        }
+        
+        .btn:hover {
+            background-color: var(--primary-dark);
+        }
+        
+        .status {
+            margin-top: 1rem;
+            padding: 0.75rem;
+            border-radius: 4px;
+            display: none;
+        }
+        
+        .error {
+            background-color: rgba(220, 53, 69, 0.1);
+            color: var(--error);
+            border: 1px solid var(--error);
+            display: block;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 3rem;
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>naped-elektryczny-i-automatyka-napedu</h1>
+        <p class="subtitle">~/neian-cwiczenia</p>
+    </header>
+    
+    <div class="card">
+        <input type="password" id="decryptionKey" class="password-input" placeholder="Wprowadź hasło dostępu">
+        <button id="decryptBtn" class="btn" onclick="checkPassword()">Sprawdź</button>
+        
+        <div id="decryptStatus" class="status"></div>
+    </div>
+    
+    <footer>
+        <p>Wszystkie operacje wykonywane są lokalnie w przeglądarce. Hasła nie są zatem przesyłane przez sieć.</p>
+    </footer>
+    
+    <script>
+        //AES-encoded-file
+        const encryptedUrl = "U2FsdGVkX1/1RgmqF3YUp1P8JTro+4C1hl3kgPB3TjOqnkuM9Z/mlr6fxZFUVAWkpOVl54EzowTTcty4Rt9ADFH76P9vkpXZt2xNf2RWsdo8If03Ii+DWTrRPSpSQdG7";
+        
+        function showStatus(elementId, message) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = 'status error';
+        }
+        
+        function checkPassword() {
+            const key = document.getElementById('decryptionKey').value;
+            const statusElement = 'decryptStatus';
+            
+            if (!key) {
+                showStatus(statusElement, 'Proszę wprowadzić hasło dostępu');
+                return;
+            }
+            
+            try {
+                const decrypted = CryptoJS.AES.decrypt(encryptedUrl, key).toString(CryptoJS.enc.Utf8);
+                
+                if (!decrypted) {
+                    throw new Error('Nieprawidłowe hasło');
+                }
+                
+                // if url
+                if (decrypted.startsWith('http://') || decrypted.startsWith('https://')) {
+                    // url
+                    window.location.href = decrypted;
+                } else {
+                    throw new Error('Nieprawidłowy format odszyfrowanych danych');
+                }
+                
+            } catch (error) {
+                showStatus(statusElement, 'Błąd: ' + error.message);
+            }
+        }
+        
+        // enterUsage
+        document.getElementById('decryptionKey').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                checkPassword();
+            }
+        });
+    </script>
+</body>
+</html>

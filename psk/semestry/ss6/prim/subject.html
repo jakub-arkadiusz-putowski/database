@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>~PŚk/prim</title>
+    <style>
+        :root {
+            --text: #2d3748;
+            --text-light: #4a5568;
+            --accent: #2b6cb0;
+            --accent-hover: #2c5282;
+            --line: #e2e8f0;
+            --bg: #eeeeee;
+            --header-footer-bg: #333;
+            --header-footer-text: #fff;
+            --category-bg: #ffffff;
+            --category-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            --category-column-margin-top: 20px;
+            --content-padding: 20px 40px;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.6;
+            color: var(--text);
+            background-color: var(--bg);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .content {
+            padding: var(--content-padding);
+            flex: 1;
+            max-width: none;
+            margin-left: 0;
+            margin-right: 40px;
+            position: relative;
+        }
+
+        .header-container {
+            position: relative;
+            width: 100%;
+            display: block;
+            padding-bottom: 0.5rem;
+        }
+
+        h1 {
+            text-align: left;
+            font-weight: 600;
+            font-size: 2.7rem;
+            letter-spacing: -0.025em;
+            margin: 1.5rem 0;
+            display: block;
+            position: relative;
+            padding: 0;
+        }
+
+        h1:after {
+            content: "";
+            position: absolute;
+            bottom: -0.75rem;
+            left: 0;
+            right: -40px;
+            height: 3px;
+            background: var(--header-footer-bg);
+            
+        }
+
+        .category {
+            background-color: var(--category-bg);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: var(--category-shadow);
+            margin: 0 0 30px 0;
+            width: 100%;
+            max-width: none;
+            margin-right: auto;
+            margin-left: 0;
+        }
+
+        .category h2 {
+            margin: 0 0 20px 0;
+            font-weight: 800;
+            font-size: 1.8rem;
+            color: var(--text-light);
+            padding-left: 0;
+        }
+
+        ul {
+            list-style-type: none;
+            padding-left: 0;
+            margin: 0;
+        }
+
+        ul li {
+            margin-bottom: 8px;
+            position: relative;
+            padding-left: 25px;
+        }
+
+        ul li:before {
+            content: "—";
+            position: absolute;
+            left: 0px;
+            color: var(--accent);
+            font-weight: 300;
+            margin-right: 8px;
+        }
+
+        a {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        a:hover {
+            color: var(--accent-hover);
+            text-decoration: underline;
+        }
+
+        p {
+            margin: 0 0 3px 0;
+            padding-left: 0;
+            color: var(--text-light);
+            font-size: 1.1em;
+        }
+
+        footer {
+            text-align: center;
+            padding: 1.5rem;
+            background-color: var(--header-footer-bg);
+            color: var(--header-footer-text);
+            font-size: 0.875rem;
+            width: 100%;
+        }
+
+        /* responsywne style */
+        @media (max-width: 768px) {
+            .content {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .category {
+                padding: 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            ul li {
+                padding-left: 20px;
+            }
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div class="content">
+        <div class="header-container">
+            <h1>PŚk // semestr 6</h1>
+        </div>
+        <!-- ss6 -->
+        <div class="category">
+            <h2>Podstawy robotyki i mechanizacji</h2>
+            <p>Wybór katalogów:</p>
+            <ul>
+                <li><a href="prim-ins-pass.html">prim-instrukcje</a></li>
+                <li><a href="prim-pro-pass.html">prim-projekt</a></li>
+                <li><a href="prim-spr-pass.html">prim-sprawozdania</a></li>
+                <li><a href="prim-wyk-pass.html">prim-wykłady</a></li>
+                <li><a href="prim-zal-pass.html">prim-zaliczenie</a></li>
+                <!-- add -->
+            </ul>
+        </div>
+    </div>
+
+    <!-- stopka -->
+    <footer>
+        Jakub-Arkadiusz Putowski @ 2025-<script>document.write(new Date().getFullYear())</script>
+    </footer>
+</body>
+</html>
